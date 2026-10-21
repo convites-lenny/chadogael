@@ -2523,7 +2523,9 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
   try {
     var hn = location.hostname || "";
     if (/^https?:$/.test(location.protocol) && hn && !/^(localhost|127\.|0\.0\.0\.0)/i.test(hn) && !/^\d+\.\d+\.\d+\.\d+$/.test(hn)){
-      SHARE_URL = location.origin + "/";
+      /* mantém a pasta do site (funciona no Firebase e no GitHub Pages) */
+      SHARE_URL = location.origin + location.pathname.replace(/[^\/]*$/, "");
+      if (SHARE_URL.slice(-1) !== "/") SHARE_URL += "/";
     }
   } catch(e){}
   function textoConvite(){
