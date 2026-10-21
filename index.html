@@ -1998,6 +1998,48 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
 
   /* ---------- SOM ---------- */
   var actx = null, musicOn = false, mTimer = null, mStep = 0;
+  var temaEl = null, temaVolume = 0.55, temaFade = null;
+
+  /* trilha sonora: tema do Looney Tunes (arquivo ao lado do convite) */
+  function tema(){
+    if (temaEl) return temaEl;
+    temaEl = document.getElementById("temaLooney");
+    if (!temaEl){
+      temaEl = document.createElement("audio");
+      temaEl.id = "temaLooney";
+      temaEl.src = "tema-looney.mp3";
+      temaEl.loop = true;
+      temaEl.preload = "auto";
+      temaEl.setAttribute("playsinline", "");
+      temaEl.volume = 0;
+      document.body.appendChild(temaEl);
+    }
+    return temaEl;
+  }
+  function tocarTema(){
+    var a = tema();
+    try { a.currentTime = a.currentTime; } catch(e){}
+    a.volume = 0;
+    var p = a.play();
+    if (p && p.then){
+      p.then(function(){
+        clearInterval(temaFade);
+        temaFade = setInterval(function(){
+          var v = Math.min(temaVolume, a.volume + 0.06);
+          a.volume = v;
+          if (v >= temaVolume) clearInterval(temaFade);
+        }, 70);
+      }).catch(function(){
+        /* se o navegador bloquear o áudio, toca a musiquinha sintetizada */
+        clearTimeout(mTimer); playStep();
+      });
+    }
+  }
+  function pararTema(){
+    clearInterval(temaFade);
+    if (temaEl){ temaEl.pause(); }
+    clearTimeout(mTimer);
+  }
   var MEL = [[523.25,.16],[659.25,.16],[783.99,.16],[1046.5,.24],[783.99,.16],[659.25,.16],[587.33,.32],
              [523.25,.16],[659.25,.16],[880.00,.16],[783.99,.24],[659.25,.16],[587.33,.16],[523.25,.36]];
   function ac(){
@@ -2051,8 +2093,8 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
     var b = $("#fabSom");
     b.classList.toggle("on", musicOn);
     b.innerHTML = musicOn ? "🔊" : "🎵<span class='ring'></span>";
-    if (musicOn){ ac(); clearTimeout(mTimer); playStep(); }
-    else clearTimeout(mTimer);
+    if (musicOn){ ac(); clearTimeout(mTimer); tocarTema(); }
+    else pararTema();
   }
   $("#fabSom").addEventListener("click", function(){ toggleMusic(); });
 
