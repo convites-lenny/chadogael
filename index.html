@@ -1415,7 +1415,7 @@ body.scrolled .fabbar{opacity:1;pointer-events:auto;transform:none}
           <div class="ico">📍</div>
           <h3>Onde</h3>
           <p><strong>Rancho das Rosas</strong><br>São Mateus — Ocidental</p>
-          <small><a id="mapLink" href="#" target="_blank" rel="noopener">▶ ver no mapa</a></small>
+          <small><a id="mapLink" href="#" target="_blank" rel="noopener">📍 abrir localização no mapa</a></small>
         </div>
         <div class="card c3 rev">
           <div class="ico">🎁</div>
@@ -1943,9 +1943,9 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
     var wd = new Intl.DateTimeFormat("pt-BR", { weekday: "long" }).format(EVENT);
     wdEl.textContent = wd.charAt(0).toUpperCase() + wd.slice(1);
   }
+  var MAPA_URL = "https://share.google/6CiNVlNzMdrltsbcU";
   var mapLink = $("#mapLink");
-  if (mapLink) mapLink.href = "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent("Rancho das Rosas, São Mateus, Ocidental");
+  if (mapLink) mapLink.href = MAPA_URL;
 
   /* ---------- CONTAGEM ---------- */
   var cd = { d: $("#cd-d"), h: $("#cd-h"), m: $("#cd-m"), s: $("#cd-s") };
@@ -2007,7 +2007,7 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
     if (!temaEl){
       temaEl = document.createElement("audio");
       temaEl.id = "temaLooney";
-      temaEl.src = "tema-looney.mp3";
+      temaEl.src = "tema-looney.mp3?v=3";
       temaEl.loop = true;
       temaEl.preload = "auto";
       temaEl.setAttribute("playsinline", "");
