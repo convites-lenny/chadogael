@@ -202,6 +202,43 @@ input,select,textarea,button{font-family:inherit;font-size:14.5px;color:var(--in
   .person{border-color:#ccc}
 }
 
+/* ---------- prévia do link (como aparece no WhatsApp) ---------- */
+.wa-preview{margin:12px 0 4px}
+.wa-preview > span{
+  display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--soft);font-weight:800;margin:0 0 7px 2px;
+}
+.wa-bubble{
+  position:relative;background:#dcf8c6;border-radius:12px 12px 12px 3px;
+  padding:8px;max-width:360px;box-shadow:0 1px 2px rgba(0,0,0,.12);
+  border:1px solid rgba(0,0,0,.06);
+}
+.wa-bubble::after{
+  content:"";position:absolute;left:-7px;bottom:0;width:0;height:0;
+  border:7px solid transparent;border-right-color:#dcf8c6;border-bottom:0;
+}
+.wa-link{
+  display:block;background:#fff;border-radius:8px;overflow:hidden;
+  text-decoration:none;color:inherit;border:1px solid #e6e3da;
+}
+.wa-link img{width:100%;height:auto;display:block;aspect-ratio:1200/630;object-fit:cover;background:#eef3f7}
+.wa-body{padding:9px 11px 10px}
+.wa-body b{
+  display:block;font-family:"Baloo 2",sans-serif;font-size:14px;line-height:1.2;
+  color:#20303f;margin-bottom:3px;
+}
+.wa-body span{display:block;font-size:11.5px;line-height:1.4;color:#5b6b7c;font-weight:600}
+.wa-body i{
+  display:block;font-style:normal;font-size:10.5px;color:#8b9aa8;
+  margin-top:5px;letter-spacing:.02em;font-weight:700;
+}
+.wa-hora{
+  display:block;text-align:right;font-size:10px;color:#6f8a63;font-weight:700;
+  margin:4px 4px 0 0;
+}
+.wa-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.wa-acoes .btn{flex:1 1 160px;justify-content:center;font-size:13px}
+
 /* ---------- recados do mural / arte ---------- */
 .mural-sec{margin-top:8px;margin-bottom:18px}
 .mural-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -294,10 +331,25 @@ input,select,textarea,button{font-family:inherit;font-size:14.5px;color:var(--in
       <span>Mensagem</span>
       <textarea id="inviteMsg"></textarea>
     </label>
+    <div class="wa-preview">
+      <span>É assim que o link aparece no WhatsApp</span>
+      <div class="wa-bubble">
+        <a class="wa-link" id="waPreviewLink" href="https://chadogael.web.app/" target="_blank" rel="noopener">
+          <img id="waPreviewImg" src="https://chadogael.web.app/og-gael.jpg" alt="Prévia do convite do Gael" loading="lazy">
+          <div class="wa-body">
+            <b>Chá de Fraldas do Gael 💙</b>
+            <span>06 de dezembro · 12h · Rancho das Rosas, São Mateus — Ocidental. Uma resenha simples entre amigos — confirma aqui!</span>
+            <i id="waPreviewDomain">chadogael.web.app</i>
+          </div>
+        </a>
+        <span class="wa-hora" id="waPreviewHora">12:00 ✓✓</span>
+      </div>
+    </div>
+
     <div class="invite-actions">
-      <button class="btn" id="btnCopyLink" type="button">📋 Copiar link</button>
-      <button class="btn ghost" id="btnCopyMsg" type="button">📝 Copiar mensagem</button>
-      <button class="btn primary" id="btnWa" type="button">💬 Enviar no WhatsApp</button>
+      <button class="btn primary" id="btnCopyLink" type="button">📋 Copiar link com prévia</button>
+      <button class="btn ghost" id="btnCopyMsg" type="button">📝 Copiar mensagem + link</button>
+      <button class="btn" id="btnWa" type="button">💬 Enviar no WhatsApp</button>
     </div>
     <p class="invite-warn" id="inviteWarn" hidden>Esse link é um caminho do seu computador — não abre no celular dos convidados. Publique o convite (ou copie o link público gerado) e cole aqui.</p>
   </section>
@@ -1124,6 +1176,20 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
     }
     linkEl.value = SITE_URL;
     linkEl.setAttribute("readonly", "readonly");
+
+    /* card de prévia (espelha o link oficial) */
+    function atualizarPreview(){
+      var a = document.getElementById("waPreviewLink");
+      var img = document.getElementById("waPreviewImg");
+      var dom = document.getElementById("waPreviewDomain");
+      if (a) a.href = SITE_URL;
+      if (img) img.src = SITE_URL + "og-gael.jpg";
+      if (dom){
+        try { dom.textContent = new URL(SITE_URL).hostname + (new URL(SITE_URL).pathname !== "/" ? new URL(SITE_URL).pathname.replace(/\/$/, "") : ""); }
+        catch(e){ dom.textContent = SITE_URL; }
+      }
+    }
+    atualizarPreview();
     linkEl.title = "Link oficial publicado";
     function persistLink(){ try { localStorage.setItem(LINK_KEY, SITE_URL); } catch(e){} }
     persistLink();
@@ -1136,23 +1202,23 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
     msgEl.addEventListener("input", persist);
     checkLink();
 
-    function copy(text){
+    function copy(text, msg){
       if (navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(text).then(function(){ toast("Copiado!"); })
-          .catch(function(){ legacy(text); });
-      } else legacy(text);
+        navigator.clipboard.writeText(text).then(function(){ toast(msg || "Copiado!"); })
+          .catch(function(){ legacy(text, msg); });
+      } else legacy(text, msg);
     }
-    function legacy(text){
+    function legacy(text, msg){
       var ta = document.createElement("textarea");
       ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
       document.body.appendChild(ta); ta.select();
-      try { document.execCommand("copy"); toast("Copiado!"); } catch(e){ toast("Não consegui copiar"); }
+      try { document.execCommand("copy"); toast(msg || "Copiado!"); } catch(e){ toast("Não consegui copiar"); }
       ta.remove();
     }
 
     $("#btnCopyLink").addEventListener("click", function(){
       if (!checkLink()) return;
-      copy(linkEl.value.trim());
+      copy(linkEl.value.trim(), "Link copiado! Cole no WhatsApp que a prévia com a arte aparece 💙");
     });
     $("#btnCopyMsg").addEventListener("click", function(){
       copy(msgEl.value.trim() + "\n" + linkEl.value.trim());
