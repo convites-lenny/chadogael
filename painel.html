@@ -1076,7 +1076,10 @@ window.compartilharArte = function(blob, nomeBase, texto, aviso){
       var publicado = /^https?:$/.test(location.protocol) &&
                       h && !/^(localhost|127\.|0\.0\.0\.0|\[?::1)/i.test(h) &&
                       !/\.local$/i.test(h) && !/^\d+\.\d+\.\d+\.\d+$/.test(h);
-      if (publicado) SITE_URL = location.origin + "/";
+      if (publicado){
+        SITE_URL = location.origin + location.pathname.replace(/[^\/]*$/, "");
+        if (SITE_URL.slice(-1) !== "/") SITE_URL += "/";
+      }
     } catch(e){}
     var defaultLink = SITE_URL;
     var defaultMsg = "Oi! 💙 Vai rolar o chá de fraldas do Gael no dia 06/12, às 12h, no Rancho das Rosas.\n" +
